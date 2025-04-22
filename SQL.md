@@ -5,6 +5,10 @@
 Reference:
 - [Video](https://www.bilibili.com/video/BV1ge4y117cM)
 
+### Optimization Direction
+1. Transition between *Memory* and *Storage* is time consuming (Height of the Tree)
+2. Time consuming of reading single and continuous elements are almost the same (B+ Tree)
+
 
 ## 1. Index (索引)
 A `sorted` list of data that can be used to quickly find.
