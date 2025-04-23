@@ -53,4 +53,17 @@ graph TD
 
 ---
 #### B Tree & B+ Tree
-Give each node a pointer to the next node. The leaf nodes are linked together.
+#### B Tree & B+ Tree
+Multi-way balanced search trees.
+
+- Reduce tree height by storing more nodes in one leaf.
+- Efficient for database indexing and file systems.
+
+**Key differences between B Tree and B+ Tree:**
+- In a B Tree, both keys and data are stored in internal and leaf nodes.
+- In a B+ Tree, only keys are stored in internal nodes, while data is stored in leaf nodes, making range queries more efficient.
+
+![Image](./Images/B%20Tree.png)
+
+Update:
+![Image](./Images/B%20Tree%20update.png)
