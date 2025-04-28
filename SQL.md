@@ -53,17 +53,32 @@ graph TD
 
 ---
 #### B Tree & B+ Tree
-#### B Tree & B+ Tree
 Multi-way balanced search trees.
 
 - Reduce tree height by storing more nodes in one leaf.
 - Efficient for database indexing and file systems.
 
-**Key differences between B Tree and B+ Tree:**
-- In a B Tree, both keys and data are stored in internal and leaf nodes.
-- In a B+ Tree, only keys are stored in internal nodes, while data is stored in leaf nodes, making range queries more efficient.
-
 ![Image](./Images/B%20Tree.png)
 
 Update:
 ![Image](./Images/B%20Tree%20update.png)
+
+#### B+ Tree
+Difference:
+1. Only leaf nodes storage value (Address of target value)
+2. Leaves are connected with each other, last leaf can quickly locate next leaf.
+
+Why B+ then:
+1. The Tree could be *Wider*
+2. Enable range search (from x to y)
+
+
+## Mysql Storage Engine 
+| MyISAM | InnoDB |
+| - | - |
+| Old | New |
+| Non-clustered | Clustered |
+
+### Clustered & Non-clustered (聚集索引与非聚集索引)
+**Non-clustered**: Data is non-continouly storaged (sparse)
+**Clustered**:
