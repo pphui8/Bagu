@@ -16,3 +16,6 @@ Focusing on "Why" instead of simply "Answer"
 
 - Java.md
 **Java**
+
+- Parallel.md
+**Parallel (Java)**
