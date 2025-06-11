@@ -106,6 +106,7 @@ SqlSession sqlSession = sqlSessionFactory.openSession();
 ## Bean 实例化的基本流程
 -> Core：实例化对象并注入属性，存储到spring容器中
 
+![bean deinition](./Images/bean%20definition.png)
 
 1. Spring容器启动时，读取配置文件，解析bean定义，封装成`BeanDefinition`对象。
    - `BeanDefinition`包含bean的类名、作用域（单例或原型）、构造参数、属性等信息。
