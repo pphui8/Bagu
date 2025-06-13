@@ -1,3 +1,5 @@
+![Spring Bean 生命周期](./Images/Spring%20IoC.png)
+
 ## 工厂后处理器 (Factory Post Processor)
 Spring 提供了一个工厂后处理器接口 `BeanFactoryPostProcessor`，允许开发者在 Spring 容器实例化任何 bean 之前修改应用上下文的内部属性。
 ### 1. BeanFactoryPostProcessor 接口
