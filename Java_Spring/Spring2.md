@@ -224,3 +224,43 @@ public class DefaultSingletonBeanRegistry {
 2. **放入二级缓存**：在 Bean 实例化过程中，如果遇到依赖注入的情况，Spring 会将当前 Bean 的半成品实例放入二级缓存。
 3. **依赖注入**：当其他 Bean 需要依赖这个半成品实例时，Spring 会从二级缓存中获取。
 4. **完成 Bean 实例化**：当所有依赖都注入完成后，Spring 会将完整的 Bean 实例放入一级缓存，并从二级缓存中移除半成品实例。
+
+
+### xml方式整合第三方框架
+1. 不需要自定义命名空间 （MyBatis、Hibernate等）
+2. 需要引入第三方框架的命名空间 （Dubbo）
+
+
+```Java
+// 原始方法整合MyBatis
+// 重复代码：
+    InputStream in = Resources.getResourceAsStream("mybatis-config.xml");
+    SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+    SqlSessionFactory factory = builder.build(in);
+    sqlSession = factory.openSession();
+    UsserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+// 重复代码
+    List<User> users = userMapper.findAll();
+```
+
+```XML
+<bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+<!-- 扫描指定mapper注册BeanDefinition -->
+<!-- 重复代码被注入到userMapper中 -->
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" id="mapperScannerConfigurer">
+    <property name="basePackage" value="com.example.mapper"/>
+</bean>
+<bean id="userService" class="com.example.service.impl.UserServiceImpl">
+    <property name="userMapper" ref="userMapper"/>
+</bean>
+```
+
+```XML
+// 需要命名空间的例子
+<dubbo:application name="myApp" />
+<dubbo:registry address="zookeeper://localhost:2181" />
+<dubbo:service interface="com.example.MyService" ref="myService" />
+<dubbo:consumer>
+```
