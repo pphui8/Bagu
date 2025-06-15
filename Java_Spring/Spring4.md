@@ -91,3 +91,75 @@ Spring AOP 使用动态代理来实现切面编程。它可以在运行时创建
 | 织入 | weaving | 将切面应用到目标对象的过程，可以在编译时、类加载时或运行时进行 |
 
 ![Spring AOP](./Images/AOP.jpeg)
+
+
+### XML配置AOP
+1. 导入APO相关坐标
+2. 准备目标类，增强类，并配置给Spring管理
+3. 配置切点表达式（哪些方法被增强）
+4. 配置织入（哪些方法增强了哪些方法）
+```xml
+<xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean id="myAspect" class="com.example.MyAspect"/>
+
+    <aop:config>
+        <aop:aspect ref="myAspect">
+        <!-- 指定哪些方法被增强 -->
+            <aop:pointcut id="myPointcut" expression="execution(* com.example.service.*.*(..))"/>
+        <!-- 配置织入 -->
+            <aop:pointcut ref="myAdvice">
+                <aop:before method="beforeAdvice" pointcut-ref="myPointcut"/>
+                <aop:after method="afterAdvice" pointcut-ref="myPointcut"/>
+            </aop:pointcut>
+        </aop:aspect>
+    </aop:config>
+```
+
+
+#### 切点表达式
+```txt
+execution(【访问修饰符】返回值类型 报名.类名.方法】(参数))
+```
+
+其中
+1. 访问修饰符：可选，指定方法的访问权限（public、protected、private等）。
+2. 返回值类型：指定方法的返回类型，可以是具体类型或通配符（*）。
+3. 包名.类名.方法：指定方法所在的包和类，可以使用通配符（*）匹配多个包或类。
+4. 包名和类名之间可以使用点（.）分隔，(..) 表示当前包及其子包。
+5. 参数：指定方法的参数类型，可以使用通配符（..）匹配任意数量的参数。
+
+Demo:
+```Java
+execution(public void com.example.service.UserService.show(..))
+execution(* com.example.service.UserService.*(..))
+// 匹配UserService包下的所有方法
+execution(* com.example.service.*.*(..))
+// 匹配com.example.service包及其子包下的所有方法
+execution(* com.example.service..*.*(..))
+```
+
+### 通知类型
+| 通知类型 | 配置方式 | 描述 |
+| -------- | -------- | ---- |
+| 前置通知 | `<aop:before>` | 在方法执行前执行 |
+| 后置通知 | `<aop:after-returning>` | 在方法执行后执行 |
+| 异常通知 | `<aop:after-throwing>` | 在方法抛出异常时执行 |
+| 环绕通知 | `<aop:around>` | 在方法执行前后执行，可以控制方法是否执行 |
+| 最终通知 | `<aop:after>` | 在方法执行后执行，无论是否抛出异常 |
+
+### 两种配置方式
+1. `advisor` 配置切面
+2. `aspect` 配置切面
+spring实现了一个Advice接口，实现了这个接口的类可以作为切面中的通知。
+
+
+## 89
