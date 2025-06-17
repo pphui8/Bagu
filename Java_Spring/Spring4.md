@@ -162,4 +162,35 @@ execution(* com.example.service..*.*(..))
 spring实现了一个Advice接口，实现了这个接口的类可以作为切面中的通知。
 
 
-## 89
+## 注解开发AOP
+
+```xml
+<!-- AOP 自动代理 -->
+<aop:aspectj-autoproxy/>
+```
+```Java
+@Component
+@Aspect // 声明这是一个切面
+public class MyAspect {
+
+    @Pointcut("execution(* com.example.service.*.*(..))") // 定义切点
+    public void myPointcut() {}
+
+    // <aop:before method="beforeAdvice" pointcut-ref="..."/>
+    @Before("myPointcut()") // 前置通知
+    public void beforeAdvice(JoinPoint joinPoint) {
+        System.out.println("Before method: " + joinPoint.getSignature().getName());
+    }
+
+    // <aop:after method="afterAdvice" pointcut-ref="..."/>
+    @AfterReturning(pointcut = "myPointcut()", returning = "result")
+    public void afterAdvice(JoinPoint joinPoint, Object result) {
+        System.out.println("After method: " + joinPoint.getSignature().getName() + ", Result: " + result);
+    }
+
+    @AfterThrowing(pointcut = "myPointcut()", throwing = "ex") // 异常通知
+    public void afterThrowingAdvice(JoinPoint joinPoint, Throwable ex) {
+        System.out.println("Exception in method: " + joinPoint.getSignature().getName() + ", Exception: " + ex.getMessage());
+    }
+}
+```

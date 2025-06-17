@@ -1,6 +1,7 @@
 # JavaSpring
 
-[bilibili](https://www.bilibili.com/video/BV1rt4y1u7q5)
+[bilibili1](https://www.bilibili.com/video/BV1WZ4y1P7Bp)  
+[bilibili2](https://www.bilibili.com/video/BV1rt4y1u7q5)
 
 ## Why Spring?
 - Problem of conventional Java EE
