@@ -1,7 +1,5 @@
 # SQL (mysql based)
 
-*This is not for Entrance Level*
-
 Reference:
 - [Video](https://www.bilibili.com/video/BV1ge4y117cM)
 
