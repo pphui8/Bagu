@@ -432,3 +432,11 @@ MyBatis 的二级缓存需要满足：
 3. 如果一级缓存也不存在，则执行 SQL 查询，并将结果存入一级缓存和二级缓存。
 
 
+### MyBatis逆向工程
+
+Reverse Engineering: 是指以数据库表结构为标准，自动生成Java持久层代码 (Official support)
+
+Database -> Code
+
+### MyBatis分页
+不一次降大量结果发回，而是一次次发。
