@@ -14,7 +14,7 @@ A `sorted` list of data that can be used to quickly find.
 - Sorted Binary Tree
 - Red-Black Tree
 - B Tree & B+ Tree
-- Hash Table
+- Hash Table （不支持连续查找）
 
 ---
 #### Sorted Binary Tree
@@ -124,3 +124,12 @@ Why B+ then:
 2. 优化范围查找
 3. 支持二级索引
 4. 支持事物
+
+
+### 为什么使用自增主键而不是UUID
+自增主键能够最大化B+树索引的插入性能和存储效率，而UUID则会引发灾难性的性能问题和空间浪费。
+
+自增主键（顺序插入）：
+  由于主键是连续递增的，新插入的数据行总是被添加到聚集索引B+树的最后一个数据页上。这是一种“追加”操作（Append-only），速度极快。当最后一个数据页写满时，InnoDB会平滑地分配一个新页继续写入。这种“页分裂”是良性的、顺序的，开销非常小。同样存储100万行数据，使用UUID的表会比使用自增ID的表占用多得多的磁盘空间。使用随机ID会导致页分裂使得存储效率降低。
+
+一个方案：对内使用自增主键，对外使用UUID（额外列）
