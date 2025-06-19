@@ -1,6 +1,6 @@
 # Java
 
-| No grammar, just some key points
+Java low-level function.
 
 ## Java GC:
 

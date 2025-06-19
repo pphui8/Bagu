@@ -106,7 +106,7 @@ If a thread detects a conflict, it will retry the operation. (CAS Algorithm, Sef
 Key: If thread A has acquired a lock, it can acquire the same lock again without blocking itself. Use `State` to record the number of times the lock has been acquired, when release the lock, it will decrease the count.  
    - Example: `ReentrantLock` class in Java.
 
-### CAS Algorithm (Low level, no lock coding)
+### CAS Algorithm (Low level, no lock coding，乐观锁的实现)
 CAS (Compare and Swap) is an *atomic* operation that compares the current value of a variable with a given value and, if they are equal, updates the variable to a new value.  
 If a thread detects a conflict, it will retry the operation. (Self-spinning)
 
@@ -184,7 +184,7 @@ public class CyclicBarrierExample {
     }
 }
 ```
-#### Semaphore
+#### Semaphore （信号量）
 Semaphore is a counting semaphore that allows a certain number of threads to access a resource concurrently.
 
 ```Java
