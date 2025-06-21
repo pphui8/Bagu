@@ -439,4 +439,4 @@ Reverse Engineering: 是指以数据库表结构为标准，自动生成Java持�
 Database -> Code
 
 ### MyBatis分页
-不一次降大量结果发回，而是一次次发。s
+不一次降大量结果发回，而是一次次发。
