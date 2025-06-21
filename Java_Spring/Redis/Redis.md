@@ -97,3 +97,38 @@ Hash is a collection of key-value pairs, similar to a dictionary in Python or an
     - `ZRANGE key start stop` - Get a range of members from a sorted set by index
     - `ZRANGEBYSCORE key min max` - Get members in a sorted set within a score range
     - `ZCARD key` - Get the number of members in a sorted set
+    - `ZRANK key member` - Get the rank of a member in a sorted set (0-based index)
+    - `ZCARD key` - Get the number of members in a sorted set
+
+
+### Java Adapter for Redis
+1. setup Redis connection
+```java
+private Jedis = jedis;
+
+@BeforeEach
+public void setUp() {
+    jedis = new Jedis("localhost", 6379);
+    jedis.auth("your_password"); // if Redis is password protected
+    jedis.select(0); // select database 0
+}
+```
+2. Data Operations
+```java
+// String Operations
+@Test
+public void testStringOperations() {
+    jedis.set("key1", "value1");
+    String value = jedis.get("key1");
+    assertEquals("value1", value);
+}
+```
+3. Close Connection
+```java
+@AfterEach
+public void tearDown() {
+    if (jedis != null) {
+        jedis.close();
+    }
+}
+```
