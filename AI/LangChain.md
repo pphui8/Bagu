@@ -306,17 +306,89 @@ documents = loader.load()
 
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 docs = text_splitter.split_documents(documents)
+print("Number of document chunks: ", len(docs))
 embeddings = GoogleGenerativeAIEmbeddings(
     model="models/gemini-embedding-exp-03-07"
 )
 doc_embeddings = embeddings.embed_documents([doc.page_content for doc in docs])
-
-print("Number of document chunks: ", len(docs))
-
 persist_directory = "db"
 db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory)
 ```
 
 ```python
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.output_parser import StrOutputParser
+
 model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 db = Chroma(persist_directory="db", embedding_function=embeddings)
+
+retriever = db.as_retriever(search_type="similarity_score_threshold", search_kwargs={"k": 3, "score_threshold": 0.4})
+prompt = "When did Obama become president?"
+response = retriever.invoke(prompt)
+
+for i, doc in enumerate(response, 1):
+  print(f"Document {i}: {doc.page_content}")
+  if doc.metadata:
+    print(f"Source: {doc.metadata.get('source', 'Unknown')}\n")
+```
+
+## Metadata
+Metadata is additional information about the documents, such as the source, author, or date. It helps in filtering and retrieving relevant documents based on specific criteria.
+
+Metadata is additional structured data that discribes our target data. (Context, timestamps, categories)
+
+
+### Text splitting
+
+| splitter | description | example |
+|----------|-------------|-----------|
+| Character-based | Splits text into chunks based on character count. Useful for small documents. | `CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)` |
+| Sentence-based | Splits text into chunks based on sentence boundaries. Useful for maintaining context in natural language. | `SentenceTextSplitter(chunk_size=1000)` |
+| Token-based | Splits text into chunks based on token count. Useful for large documents where token limits are a concern. | `TokenTextSplitter(chunk_size=512, chunk_overlap=100)` |
+| Recursive Character-based (most used) | Splits text recursively into smaller chunks until a specified size is reached. Useful for hierarchical documents. | `RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)` |
+
+When to use which splitter:
+1. **Character-based**: Use for small documents where you need precise control over chunk size.
+2. **Sentence-based**: Use when maintaining natural language context is important, such as in conversational data.
+3. **Token-based**: Use for large documents where token limits are a concern, especially with models that have strict token limits.
+4. **Recursive Character-based**: Use for hierarchical documents or when you want to ensure that chunks are not too large while still maintaining some overlap.
+
+### Retriver
+Retrievers are used to fetch relevant documents from a database based on a query. They can be configured to use different search methods, such as similarity search or keyword search.
+
+#### Similarity Search
+This method retrieves documents based on their similarity to the query. It uses embeddings to measure the semantic similarity between the query and the documents.
+
+```python
+retriever = db.as_retriever(
+    search_type="similarity"
+    search_kwargs={"k": 3}
+```
+or with a score threshold
+```python
+retriever = db.as_retriever(
+    search_type="similarity_score_threshold",
+    search_kwargs={"k": 3, "score_threshold": 0.4}
+)
+```
+
+### Max Marginal Relevance (MMR)
+This method **balance between relevance and diversity** in the retrieved documents. It ensures that the retrieved documents are not only relevant to the query but also diverse enough to provide a comprehensive answer.
+
+`fetch_k` specifies the number of documents to retrieve based on similarity
+
+`lambda_mult` controls the trade-off between relevance and diversity. A higher value means more emphasis on diversity.
+
+```python
+retriever = db.as_retriever(
+    search_type="mmr",
+    search_kwargs={
+        "k": 3,
+        "fetch_k": 10,
+        "lambda_mult": 0.5
+    }
+)
+```
+
+### One off question answering
+```python
