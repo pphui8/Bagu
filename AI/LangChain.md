@@ -332,7 +332,7 @@ for i, doc in enumerate(response, 1):
     print(f"Source: {doc.metadata.get('source', 'Unknown')}\n")
 ```
 
-## Metadata
+### Metadata
 Metadata is additional information about the documents, such as the source, author, or date. It helps in filtering and retrieving relevant documents based on specific criteria.
 
 Metadata is additional structured data that discribes our target data. (Context, timestamps, categories)
@@ -519,3 +519,238 @@ def continual_chat():
 if __name__ == "__main__":
     continual_chat()
 ```
+
+## Web Scraping
+```python
+
+urls = ["https://www.apple.com/"]
+
+# Create a loader for web content
+loader = WebBaseLoader(urls)
+documents = loader.load()
+
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+docs = text_splitter.split_documents(documents)
+
+# Display information about the split documents
+print("\n--- Document Chunks Information ---")
+print(f"Number of document chunks: {len(docs)}")
+print(f"Sample chunk:\n{docs[0].page_content}\n")
+
+# Create embeddings for the document chunks
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/gemini-embedding-exp-03-07"
+)
+
+# Step 4: Create and persist the vector store with the embeddings
+# Chroma stores the embeddings for efficient searching
+if not os.path.exists(persistent_directory):
+    print(f"\n--- Creating vector store in {persistent_directory} ---")
+    db = Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
+    print(f"--- Finished creating vector store in {persistent_directory} ---")
+else:
+    print(f"Vector store {persistent_directory} already exists. No need to initialize.")
+    db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
+
+# Step 5: Query the vector store
+# Create a retriever for querying the vector store
+retriever = db.as_retriever(
+    search_type="similarity_score_threshold",
+    search_kwargs={"k": 3, "score_threshold": 0.4}
+)
+
+# Define the user's question
+query = "What new products are announced on Apple.com?"
+
+# Retrieve relevant documents based on the query
+relevant_docs = retriever.invoke(query)
+
+# Display the relevant results with metadata
+print("\n--- Relevant Documents ---")
+for i, doc in enumerate(relevant_docs, 1):
+    print(f"Document {i}:\n{doc.page_content}\n")
+    if doc.metadata:
+        print(f"Source: {doc.metadata.get('source', 'Unknown')}\n")
+```
+
+### with firecrawl
+Firecrawl is a web scraping tool that allows you to scrape websites and extract structured data. It can be used to gather information from various sources, such as product pages, news articles, or any other web content.
+
+```python
+def create_vector_store():
+    """Crawl the website, split the content, create embeddings, and persist the vector store."""
+    # Define the Firecrawl API key
+    api_key = os.getenv("FIRECRAWL_API_KEY")
+    if not api_key:
+        raise ValueError("FIRECRAWL_API_KEY environment variable not set")
+
+    # Step 1: Crawl the website using FireCrawlLoader
+    print("Begin crawling the website...")
+    loader = FireCrawlLoader(
+        api_key=api_key, url="https://apple.com", mode="scrape")
+    docs = loader.load()
+    print("Finished crawling the website.")
+
+    # Convert metadata values to strings if they are lists
+    for doc in docs:
+        for key, value in doc.metadata.items():
+            if isinstance(value, list):
+                doc.metadata[key] = ", ".join(map(str, value))
+
+    # Step 2: Split the crawled content into chunks
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    split_docs = text_splitter.split_documents(docs)
+
+    # Display information about the split documents
+    print("\n--- Document Chunks Information ---")
+    print(f"Number of document chunks: {len(split_docs)}")
+    print(f"Sample chunk:\n{split_docs[0].page_content}\n")
+
+    # Step 3: Create embeddings for the document chunks
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+    # Step 4: Create and persist the vector store with the embeddings
+    print(f"\n--- Creating vector store in {persistent_directory} ---")
+    db = Chroma.from_documents(
+        split_docs, embeddings, persist_directory=persistent_directory
+    )
+    print(f"--- Finished creating vector store in {persistent_directory} ---")
+
+
+# Check if the Chroma vector store already exists
+if not os.path.exists(persistent_directory):
+    create_vector_store()
+else:
+    print(
+        f"Vector store {persistent_directory} already exists. No need to initialize.")
+
+# Load the vector store with the embeddings
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/gemini-embedding-exp-03-07"
+)
+db = Chroma(persist_directory=persistent_directory,
+            embedding_function=embeddings)
+
+
+# Step 5: Query the vector store
+def query_vector_store(query):
+    """Query the vector store with the specified question."""
+    # Create a retriever for querying the vector store
+    retriever = db.as_retriever(
+        search_type="similarity_score_threshold",
+        search_kwargs={"k": 3, "score_threshold": 0.4}
+    )
+
+    # Retrieve relevant documents based on the query
+    relevant_docs = retriever.invoke(query)
+
+    # Display the relevant results with metadata
+    print("\n--- Relevant Documents ---")
+    for i, doc in enumerate(relevant_docs, 1):
+        print(f"Document {i}:\n{doc.page_content}\n")
+        if doc.metadata:
+            print(f"Source: {doc.metadata.get('source', 'Unknown')}\n")
+
+
+# Define the user's question
+query = "Apple Intelligence?"
+
+# Query the vector store with the user's question
+query_vector_store(query)
+```
+
+## Agents
+Agents are autonomous entities that can perform tasks based on user input. They can be used to automate processes, such as data retrieval, analysis, and reporting. Agents can be configured to use different tools and models to perform their tasks.
+
+![Agents](./Images/agents.png)
+
+```python
+def get_current_time(*args, **kwargs):
+    """Get the current time."""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+tools = [
+    Tool(
+        name="get_current_time",
+        func=get_current_time,
+        description="Get the current time in the format YYYY-MM-DD HH:MM:SS"
+    )
+]
+
+prompt = hub.pull("hwchase17/react")
+
+model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+
+agent = create_react_agent(
+    llm=model,
+    tools=tools,
+    prompt=prompt,
+    stop_sequence=True
+)
+
+agent_executor = AgentExecutor.from_agent_and_tools(
+    agent=agent,
+    tools=tools,
+    verbose=True
+)
+response = agent_executor.invoke({"input": "What is the current time?"})
+print(response["output"])
+```
+
+### ReAct Chat
+ReAct means Reasoning and Acting. It allows the model to reason about the task and take actions based on its reasoning.
+
+```python
+def get_current_time(*args, **kwargs):
+    """Get the current time."""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def search_wikipedia(query):
+    """Search Wikipedia for the given query."""
+    from wikipedia import summary
+    try:
+        return summary(query, sentences=3)
+    except Exception as e:
+        return "I couldn't find any information on that topic."
+
+tools = [
+    Tool(
+        name="get_current_time",
+        func=get_current_time,
+        description="Get the current time in the format YYYY-MM-DD HH:MM:SS"
+    ),
+    Tool(
+        name="search_wikipedia",
+        func=search_wikipedia,
+        description="Search Wikipedia for the given query and return a summary."
+    )
+]
+
+prompt = hub.pull("hwchase17/structured-chat-agent")
+
+model = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True
+)
+
+agent = create_structured_chat_agent(
+    llm=model,
+    tools=tools,
+    prompt=prompt,
+)
+agent_executor = AgentExecutor.from_agent_and_tools(
+    agent=agent,
+    tools=tools,
+    verbose=True,
+    memory=memory,
+    handle_prasing_errors=True
+)
+response = agent_executor.invoke({"input": "Who is Barack Obama?"})
+print(response["output"])
+```
+
+### React Docstore
