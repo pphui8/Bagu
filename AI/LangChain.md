@@ -2,6 +2,13 @@
 
 [video](https://www.youtube.com/watch?v=yF9kGESAi3M&t=4709s)
 
+1. Chat models
+2. Prompt templates
+3. Chains
+4. RAGs
+5. Agents
+6. Tools
+
 ## Basic Usage
 
 ```python
@@ -753,4 +760,173 @@ response = agent_executor.invoke({"input": "Who is Barack Obama?"})
 print(response["output"])
 ```
 
-### React Docstore
+## Tool Constructor
+The Tool Constructor allows you to create custom tools that can be used by agents. These tools can perform specific tasks, such as data retrieval, analysis, or any other custom functionality.
+
+```python
+# Functions for the tools
+def greet_user(name: str) -> str:
+    """Greets the user by name."""
+    return f"Hello, {name}!"
+
+
+def reverse_string(text: str) -> str:
+    """Reverses the given string."""
+    return text[::-1]
+
+
+def concatenate_strings(a: str, b: str) -> str:
+    """Concatenates two strings."""
+    return a + b
+
+
+# Pydantic model for tool arguments
+class ConcatenateStringsArgs(BaseModel):
+    a: str = Field(description="First string")
+    b: str = Field(description="Second string")
+
+
+# Create tools using the Tool and StructuredTool constructor approach
+tools = [
+    # Use Tool for simpler functions with a single input parameter.
+    # This is straightforward and doesn't require an input schema.
+    Tool(
+        name="GreetUser",  # Name of the tool
+        func=greet_user,  # Function to execute
+        description="Greets the user by name.",  # Description of the tool
+    ),
+    # Use Tool for another simple function with a single input parameter.
+    Tool(
+        name="ReverseString",  # Name of the tool
+        func=reverse_string,  # Function to execute
+        description="Reverses the given string.",  # Description of the tool
+    ),
+    # Use StructuredTool for more complex functions that require multiple input parameters.
+    # StructuredTool allows us to define an input schema using Pydantic, ensuring proper validation and description.
+    StructuredTool.from_function(
+        func=concatenate_strings,  # Function to execute
+        name="ConcatenateStrings",  # Name of the tool
+        description="Concatenates two strings.",  # Description of the tool
+        args_schema=ConcatenateStringsArgs,  # Schema defining the tool's input arguments
+    ),
+]
+
+# Initialize a ChatOpenAI model
+llm = ChatOpenAI(model="gpt-4o")
+
+# Pull the prompt template from the hub
+prompt = hub.pull("hwchase17/openai-tools-agent")
+
+# Create the ReAct agent using the create_tool_calling_agent function
+agent = create_tool_calling_agent(
+    llm=llm,  # Language model to use
+    tools=tools,  # List of tools available to the agent
+    prompt=prompt,  # Prompt template to guide the agent's responses
+)
+
+# Create the agent executor
+agent_executor = AgentExecutor.from_agent_and_tools(
+    agent=agent,  # The agent to execute
+    tools=tools,  # List of tools available to the agent
+    verbose=True,  # Enable verbose logging
+    handle_parsing_errors=True,  # Handle parsing errors gracefully
+)
+
+# Test the agent with sample queries
+response = agent_executor.invoke({"input": "Greet Alice"})
+print("Response for 'Greet Alice':", response)
+
+response = agent_executor.invoke({"input": "Reverse the string 'hello'"})
+print("Response for 'Reverse the string hello':", response)
+
+response = agent_executor.invoke({"input": "Concatenate 'hello' and 'world'"})
+print("Response for 'Concatenate hello and world':", response)
+```
+
+Or
+```python
+# Pydantic models for tool arguments
+# Define a Pydantic model to specify the input schema for tools that need more structured input.
+class ReverseStringArgs(BaseModel):
+    text: str = Field(description="Text to be reversed")
+
+
+# Tool with One Parameter using args_schema
+# Use the args_schema parameter to specify the input schema using a Pydantic model.
+@tool(args_schema=ReverseStringArgs)
+def reverse_string(text: str) -> str:
+    """Reverses the given string."""
+    return text[::-1]
+
+# Another Pydantic model for tool arguments
+class ConcatenateStringsArgs(BaseModel):
+    a: str = Field(description="First string")
+    b: str = Field(description="Second string")
+
+
+# Tool with Two Parameters using args_schema
+# This tool requires multiple input parameters, so we use the args_schema to define the schema.
+@tool(args_schema=ConcatenateStringsArgs)
+def concatenate_strings(a: str, b: str) -> str:
+    """Concatenates two strings."""
+    print("a", a)
+    print("b", b)
+    return a + b
+
+```
+
+Or
+
+```python
+class SimpleSearchInput(BaseModel):
+    query: str = Field(description="should be a search query")
+
+
+class MultiplyNumbersArgs(BaseModel):
+    x: float = Field(description="First number to multiply")
+    y: float = Field(description="Second number to multiply")
+
+
+# Custom tool with only custom input
+
+
+class SimpleSearchTool(BaseTool):
+    name = "simple_search"
+    description = "useful for when you need to answer questions about current events"
+    args_schema: Type[BaseModel] = SimpleSearchInput
+
+    def _run(
+        self,
+        query: str,
+    ) -> str:
+        """Use the tool."""
+        from tavily import TavilyClient
+
+        api_key = os.getenv("TAVILY_API_KEY")
+        client = TavilyClient(api_key=api_key)
+        results = client.search(query=query)
+        return f"Search results for: {query}\n\n\n{results}\n"
+
+
+# Custom tool with custom input and output
+class MultiplyNumbersTool(BaseTool):
+    name = "multiply_numbers"
+    description = "useful for multiplying two numbers"
+    args_schema: Type[BaseModel] = MultiplyNumbersArgs
+
+    def _run(
+        self,
+        x: float,
+        y: float,
+    ) -> str:
+        """Use the tool."""
+        result = x * y
+        return f"The product of {x} and {y} is {result}"
+
+
+# Create tools using the Pydantic subclass approach
+tools = [
+    SimpleSearchTool(),
+    MultiplyNumbersTool(),
+]
+```
