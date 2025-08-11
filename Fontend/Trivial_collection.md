@@ -139,4 +139,58 @@ import _ from 'lodash';
 const copy = _.cloneDeep(original);
 ```
 
-15
+15. `in` operator and `hasOwnProperty` 方法
+```Javascript
+// in: 检查自有属性+原型链
+'toString' in obj;  // true
+// 仅检查自有属性
+obj.hasOwnProperty('toString');  // false
+```
+
+16. 原型链
+类似`Java`, 每个对象都有一个`__proto__`属性指向其构造函数的原型对象`[[Prototype]]`。通过原型链可以实现属性的继承。  
+原型链：对象访问时会先查找自身属性，如果不存在则沿着`__proto__`链向上查找。
+
+17. **类是构造函数**，因此 `typeof class A -> function`
+
+18. 类的继承：
+```Javascript
+// 1, extends 关键字 (ES6)
+class Child extends Parent {
+
+}
+
+// 2. prototype
+function Parent() {
+    this.parentProperty = 'parent';
+}
+function Child() {}
+Child.prototype = new Parent();
+
+// 3. constructor + prototype
+Child.prototype.constructor = Child;
+```
+
+19. `Proxy`: 创建一个对象的代理，自定义对象的操作行为
+```Javascript
+const proxy = new Proxy({}, {
+    get(target, prop) {
+        return prop in target ? target[prop] : 42;
+    }
+});
+```
+
+20. `Reflect API`: 是与 `Proxy` 对应的内置对象，提供拦截 JavaScript 操作的方法
+```Javascript
+Reflect.get(target, prop);
+Reflect.set(target, prop, value);
+Reflect.has(target, prop);
+```
+
+21. `Symbol`: 一种独一无二且不可变的数据类型，常用于对象属性的键，避免命名冲突
+```Javascript
+const sym = Symbol('description');
+const obj = {
+    [sym]: 'value'
+};
+```
