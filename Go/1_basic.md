@@ -211,5 +211,154 @@ func main() {
 }
 ```
 
-## `Error`  
+11. `Error`  
 Go 中使用 Error 接口来表示错误。Error 接口只有一个方法：Error() string。任何实现了这个方法的类型都可以被视为一个错误。
+
+## Chapter
+1. 类型参数  
+此声明意味着 s 是满足内置约束 comparable 的任何类型 T 的切片。 x 也是相同类型的值。
+```go
+// Index 返回 x 在 s 中的下标，未找到则返回 -1。
+func Index[T comparable](s []T, x T) int {
+	for i, v := range s {
+		// v 和 x 的类型为 T，它拥有 comparable 可比较的约束，
+		// 因此我们可以使用 ==。
+		if v == x {
+			return i
+		}
+	}
+	return -1
+}
+```
+
+2. 泛型
+```go
+// List 表示一个可以保存任何类型的值的单链表。
+type List[T any] struct {
+	next *List[T]
+	val  T
+}
+```
+
+## `goroutine`
+goroutine 是由 Go 运行时管理的轻量级线程。
+
+```go
+func say(s string) {
+	for i := 0; i < 5; i++ {
+		time.Sleep(100 * time.Millisecond)
+		fmt.Println(s)
+	}
+}
+
+func main() {
+	go say("world")
+	say("hello")
+}
+```
+
+1. 通道（Channel）
+默认情况下，发送和接收操作在另一端准备好之前都会阻塞。这使得 Go 程可以在没有显式的锁或竞态变量的情况下进行同步。
+```go
+func sum(s []int, c chan int) {
+	sum := 0
+	for _, v := range s {
+		sum += v
+	}
+	c <- sum // 发送 sum 到 c
+}
+
+func main() {
+	s := []int{7, 2, 8, -9, 4, 0}
+
+	c := make(chan int)
+	go sum(s[:len(s)/2], c)
+	go sum(s[len(s)/2:], c)
+	x, y := <-c, <-c // 从 c 接收
+
+	fmt.Println(x, y, x+y)
+}
+```
+
+
+信道可以是 带缓冲的。将缓冲长度作为第二个参数提供给 make 来初始化一个带缓冲的信道。  
+信道填满后，发送操作会阻塞，直到有接收方接收数据。
+
+```go
+c := make(chan int, 2)
+c <- 1
+c <- 2
+fmt.Println(<-c)
+fmt.Println(<-c)
+```
+
+2. 发送者可通过 close 关闭一个信道来表示没有需要发送的值了。
+```go
+c := make(chan int, 2)
+close(c)
+```
+
+3. 接收者可以通过为接收表达式分配第二个参数来测试信道是否被关闭
+```go
+v, ok := <-c
+```
+
+4. 循环 for i := range c 会不断从信道接收值，直到它被关闭。
+```go
+for i := range c {
+	fmt.Println(i)
+}
+```
+
+5. select 语句使一个 Go 程可以等待多个通信操作。
+
+select 会阻塞到某个分支可以继续执行为止，这时就会执行该分支。当多个分支都准备好时会随机选择一个执行。
+
+当 select 中的其它分支都没有准备好时，default 分支就会执行。
+```go
+func fibonacci(c, quit chan int) {
+	x, y := 0, 1
+	for {
+		select {
+		case c <- x:
+			x, y = y, x+y
+		case <-quit:
+			fmt.Println("quit")
+			return
+		}
+	}
+}
+
+func main() {
+	c := make(chan int)
+	quit := make(chan int)
+	go func() {
+		for i := 0; i < 10; i++ {
+			fmt.Println(<-c)
+		}
+		quit <- 0
+	}()
+	fibonacci(c, quit)
+}
+```
+
+6. 互斥锁（Mutex）  
+Go 标准库中提供了 sync.Mutex 互斥锁类型及其两个方法：
+- Lock
+- Unlock  
+我们可以通过在代码前调用 Lock 方法，在代码后调用 Unlock 方法来保证一段代码的互斥执行。
+```go
+// SafeCounter 是并发安全的
+type SafeCounter struct {
+	mu sync.Mutex
+	v  map[string]int
+}
+
+// Inc 对给定键的计数加一
+func (c *SafeCounter) Inc(key string) {
+	c.mu.Lock()
+	// 锁定使得一次只有一个 Go 协程可以访问映射 c.v。
+	c.v[key]++
+	c.mu.Unlock()
+}
+```
