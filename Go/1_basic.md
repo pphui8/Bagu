@@ -1,5 +1,7 @@
 # Basic
 
+[link](https://tour.go-zh.org/)
+
 ```go
 // 包层级的所有语句必须以 `var/func` 开头
 var c, python, java = true, false, "no!"
