@@ -75,3 +75,16 @@ Map(k, v) /* k: file name, v: file content */
 Reduce(k, v) /* k: word, v: count */
     emit(len(v))
 ```
+
+1. 编程模型  
+• 用户只需写：  
+map(k1, v1) → list(k2, v2)  
+reduce(k2, list(v2)) → list(v3)  
+• 其余并行、容错、调度、I/O 由运行时搞定。  
+2. 执行流程  
+Split → map workers → 分区 & 排序 → reduce workers → 输出。  
+Master 负责任务分配、心跳、重试。  
+中间结果先写本地磁盘再拉取，确保可重算。  
+3. 容错  
+• Worker 崩溃：任务重跑；Master 崩溃：作业失败（罕见）。  
+• 利用 GFS 的副本 + 数据本地性减少网络。
