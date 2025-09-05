@@ -55,8 +55,12 @@ Permanent stroage: map<file name, chunk names>,
 Temperary storage: chunk address 
 
 #### Write (no update)
-Only all copies are done then its written
+Only all copies are done then its written.
+**key**: master will first assign order to chunks. (Primary to secondary)
 1. find to-to-date chunk servers
 2. pick primary and secondary
 3. increase version
 4. write data (to chunk servers)
+
+### Possible issue:
+1. 
