@@ -65,7 +65,9 @@ IO 多路复用是一种同步IO模型，实现一个线程可以监视多个文
 服务器端当 accept 一个请求后，加入 fds 集合，每次轮询一遍 fds 集合 recv (非阻塞)数据，没有数据则立即返回错误，每次轮询所有 fd （包括没有发生读写实际的 fd）会很浪费 CPU。
 
 ### IO 多路复用
-服务器端当 accept 一个请求后，加入 fds 集合，每次轮询一遍 fds 集合 recv (非阻塞)数据，没有数据则立即返回错误，每次轮询所有 fd （包括没有发生读写实际的 fd）会很浪费 CPU。
+[video](https://www.bilibili.com/video/BV1RJ4m1b7cy/?spm_id_from=333.337.search-card.all.click&vd_source=cad68d53a48573461e83be27a70101d1)
+
+服务器端采用单线程通过 select/poll/epoll 等系统调用获取 fd 列表，遍历有事件的 fd 进行 accept/recv/send ，使其能支持更多的并发连接请求。
 
 ### IO 多路复用的实现
 1. select：Linux 内核 2.4 之前的版本，支持的文件描述符数量有限（1024），每次调用都需要将用户空间的 fds 集合拷贝到内核空间，效率较低。
