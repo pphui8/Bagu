@@ -98,9 +98,26 @@ func requestVote() bool {
 }
 ```
 
+## Majority vote systems
+- Raft 使用多数投票系统来确保系统的安全性和一致性。一个节点必须获得超过半数的投票才能成为 Leader 或提交日志条目。
+However, this requires that at least one server is overlap between any two majorities. This means that the system can tolerate up to (N-1)/2 failures, where N is the total number of servers in the cluster.
+
+
 ## Raft
 Raft 是一种 分布式共识算法（consensus algorithm）
 - 核心作用：让多个节点（服务器）在不可靠的网络环境中，就某个值或日志序列达成一致（共识）。
+- To get the newest data in a Raft distributed system, the client must communicate with the leader node.
+
+### Limitations of MapReduce
+- Over-reliance on a single master node creates a single point of failure.
+
+### Implementation Details
+in a standard implementation of a system using the Raft consensus algorithm, each node typically contains both a Raft server (the consensus module) and a key-value (K/V) server (the state machine).
+
+### why not using longest log as the lead
+A log is considered "more up-to-date" if:
+- It has a higher term number for its last log entry.
+- If the term numbers are the same, it has a longer log.
 
 ### 节点状态
 1. Follower
@@ -146,4 +163,3 @@ Key：主机发送最后一个next index检查最后发送的信息是否一致�
 ### 安全性
 - 因为 Raft 是 leader 节点的强一致性算法，所以从节点不会投票给日志不如自己新的节点。
 选举时，如果一个节点的日志比另一个节点的日志新，那么它不会投票给那个节点。这样可以确保只有日志最新的节点才能成为 Leader，从而保证日志的一致性。
-
