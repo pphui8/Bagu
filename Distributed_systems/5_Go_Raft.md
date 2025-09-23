@@ -119,6 +119,11 @@ A log is considered "more up-to-date" if:
 - It has a higher term number for its last log entry.
 - If the term numbers are the same, it has a longer log.
 
+### what should be persistent
+- log entries
+- current term
+- voted forff
+
 ### 节点状态
 1. Follower
    - **被动**状态，响应来自 Leader 或 Candidate 的请求
