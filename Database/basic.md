@@ -127,3 +127,72 @@ SELECT column1, column2 FROM table2;
 ```
 
 ### 窗口函数
+OLAP (Online Analytical Processing)函数，也称为窗口函数，用于在查询结果集中执行计算，而不需要将结果集分组。
+1. 语法
+```SQL
+<窗口函数> OVER (
+    [PARTITION BY partition_expression]
+    [ORDER BY order_expression]
+    [ROWS frame_specification]
+)
+```
+
+2. 常用窗口函数
+- 聚合函数：SUM(), AVG(), COUNT(), MIN(), MAX()
+- 专有函数：ROW_NUMBER(), RANK(), DENSE_RANK(), NTILE()
+
+#### RANK -> 分组并排序
+RANK() 函数为结果集中的每一行分配一个唯一的排名，排名相同的行会获得相同的排名值，后续排名会跳过相应的数字。
+```SQL
+SELECT emp_name, emp_salary,
+       RANK() OVER (PARTITION BY emp_dept ORDER BY emp_salary DESC) AS dept_rank
+FROM Employee;
+```
+PARTITION BY 子句用于将结果集按部门进行分区，ORDER BY 子句用于按薪资降序排列。
+（PARTITION分组，ORDER排序）
+
+不指定PARTITION BY时，整个结果集作为一个分区。
+
+1. RANK(): 为每一行分配排名，排名相同的行会获得相同的排名值，后续排名会跳过相应的数字。
+2. DENSE_RANK(): 与 RANK() 类似，但不会跳过排名数字
+3. ROW_NUMBER(): 为每一行分配一个唯一的序号，即使排名相同的行也会有不同的序号。
+
+通常窗口函数不需要参数。
+
+#### 移动平均
+```SQL
+SELECT emp_name, emp_salary,
+         AVG(emp_salary) OVER (
+             ORDER BY emp_salary
+             ROWS BETWEEN 2 PRECEDING AND CURRENT ROW AND 1 FOLLOWING
+         ) AS moving_avg
+FROM Employee;
+```
+PRECEDING表示前几行，FOLLOWING表示后几行, CURRENT ROW表示当前行。
+
+#### GROUPING
+同时得到汇总行和明细行 （总计和小计）
+```SQL
+SELECT product_type, SUM(sales_amount) AS total_sales,
+FROM Sales
+GROUP BY ROLLUP (product_type);
+``` 
+ROLLUP 会生成一个额外的汇总行，显示所有产品类型的总销售额。(键值默认为NULL)
+
+ROLLUP 可以用于多列，相当于对每一列进行汇总
+``` GROUP BY ROLLUP (col1, col2) ```
+==
+1. ```GROUP BY ROLLUP ()```
+2. ```GROUP BY ROLLUP (col1)```
+3. ```GROUP BY ROLLUP (col1, col2)```
+然后再将结果UNION起来。
+
+GROUPING函数用于区分汇总行和明细行
+```SQL
+SELECT product_type,
+         SUM(sales_amount) AS total_sales,
+            GROUPING(product_type) AS is_summary
+FROM Sales
+GROUP BY ROLLUP (product_type);
+```
+is_summary为1表示汇总行，0表示明细行。
