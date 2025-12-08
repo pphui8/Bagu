@@ -103,7 +103,29 @@ A virtual network interface that can be attached to an instance in a VPC (Virtua
 ### EC2 Hibernate
 Saves the contents of the instance's RAM to the EBS root volume. WHen the instance is started again, the RAM contents are restored, and the instance resumes from where it left off.
 
-## EBS Storage Section
+### EBS Storage Section
 EBS = Elastic Block Store: Persistent block storage for EC2 instances.
 
 - Can only be attached to one EC2 instance at a time (in the same AZ).
+
+#### EBS Snapshot
+- Point-in-time backup of an EBS volume. (Cross AZ)
+
+
+### AMI - Amazon Machine Image
+A template that contains the software configuration (operating system, application server, and applications) required to launch an EC2 instance.
+
+- Create: Launch instance -> customize -> create image -> AMI created
+
+### EC2 Instance Store
+High-performance temporary storage that is physically attached to the host computer. Data is lost when the instance is stopped or terminated. (ephemeral storage)
+
+### Volume Types
+- General Purpose SSD (gp2, gp3): **Balanced** price and performance for a wide variety of workloads.
+- Provisioned IOPS SSD (io1, io2): **High-performance** SSD designed for I/O-intensive applications.
+- Throughput Optimized HDD (st1): **Low-cost HDD** designed for frequently accessed, throughput-intensive workloads.
+- Cold HDD (sc1): **Lowest cost** HDD designed for less frequently accessed data.
+
+
+
+
