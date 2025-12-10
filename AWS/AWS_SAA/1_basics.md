@@ -126,6 +126,61 @@ High-performance temporary storage that is physically attached to the host compu
 - Throughput Optimized HDD (st1): **Low-cost HDD** designed for frequently accessed, throughput-intensive workloads.
 - Cold HDD (sc1): **Lowest cost** HDD designed for less frequently accessed data.
 
+### Multiple Attach (io2 only)
+Allows a single io2 volume to be attached to multiple EC2 instances simultaneously. Useful for clustered applications that require shared storage.
+
+### EBS Encryption
+EBS volumes can be encrypted to protect data at rest. Encryption is handled by AWS Key Management Service (KMS).
 
 
+### Elastic File System (EFS) - auto scaling
+A fully managed NFS (Network File System) file system that can be mounted on multiple EC2 instances. Provides scalable storage that grows and shrinks automatically as files are added or removed.
+
+EFS-IA (Infrequent Access): Lower cost storage class for files that are not accessed frequently.
+
+
+### EBS vs EFS vs S3
+| Feature         | EBS                          | EFS                          | S3                           |
+|-----------------|------------------------------|------------------------------|------------------------------|
+| Type            | Block Storage                | File Storage                 | Object Storage               |
+| Use Case        | Single EC2 instance          | Multiple EC2 instances       | Static website
+| Scalability     | Fixed size                   | Automatically scales         | Virtually unlimited          |
+| Performance     | High IOPS                    | High throughput              | Variable                     |
+| AZ Scope       | Single AZ                    | Multiple AZs                 | Global                       |
+
+
+## Scalability and High Availability
+- Scalability: The ability to handle increased load by adding resources.
+- High Availability: The ability to remain operational and accessible even in the event of failures.
+
+### Load Balancer Types
+- Gateway Load Balancer (GLB): Operates at the network layer (Layer 3). Ideal for deploying, scaling, and managing virtual appliances such as firewalls, intrusion detection and prevention systems, and deep packet inspection systems.
+- Application Load Balancer (ALB): Operates at the application layer (Layer 7). Ideal for HTTP and HTTPS traffic. Supports advanced routing features.
+- Network Load Balancer (NLB): Operates at the transport layer (Layer 4). Ideal for TCP, UDP, and TLS traffic. Can handle millions of requests per second with low latency.
+- Classic Load Balancer (CLB): Operates at both the application and transport layers. Legacy option, generally replaced by ALB and NLB.
+
+Elastic Load Balancer: Distributes incoming application traffic across multiple targets, such as EC2 instances, in multiple Availability Zones.
+- Health Checks: Monitors the health of registered targets and routes traffic only to healthy instances.
+
+### Classic load balancer
+- Supports both Layer 4 (TCP) and Layer 7 (HTTP/HTTPS) load balancing.
+
+Rond-robin strategy: evenly distributes incoming requests.
+
+### Application Load Balancer
+- Operates at Layer 7 (Application Layer).
+- Support http/https and websocket protocols.
+- Fit for microservices and container-based architectures.
+
+Host-based routing: Routes traffic based on the host field in the HTTP header.
+Path-based routing: Routes traffic based on the URL path of the request.
+- domain routing (www.xxx.com)
+- URL routing (/app1, /app2)
+- query string routing (?type=xxx)
+
+WHat`s happening behind the scenes:
+
+Client <-> ALB <-> Target Group <-> EC2 instances
+
+Application server dose not see the client IP, it responds to ALB with http head of "X-Forwarded-For" containing the client IP.
 
