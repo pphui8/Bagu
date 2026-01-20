@@ -184,3 +184,13 @@ Client <-> ALB <-> Target Group <-> EC2 instances
 
 Application server dose not see the client IP, it responds to ALB with http head of "X-Forwarded-For" containing the client IP.
 
+### Network Load Balancer
+- Layer 4 (Transport Layer): lower layers, high performance, low latency, support static IP.
+
+### Gateway Load Balancer
+- Layer 3 (Network Layer): routes traffic to virtual appliances.
+
+Users -> Gateway Load Balancer -> Target Group (virtual appliances, act as a single entry point) -> Gateway Load Balancer -> Application
+
+the virtual appliances can be firewalls, intrusion detection and prevention systems, deep packet inspection systems.
+
